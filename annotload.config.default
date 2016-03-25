@@ -1,0 +1,17 @@
+#!/bin/csh -f
+
+#
+# defaults for OMIM/HPO annotation load
+#
+
+#source ${ANNOTLOAD}/Configuration
+
+setenv ANNOTDATADIR	${DATALOADSOUTPUT}/omim_hpo/input
+setenv ANNOTMODE	new
+setenv ANNOTTYPENAME	"OMIM/HPO"
+setenv ANNOTPROPERTY    109
+setenv ANNOTINPUTFILE	${ANNOTDATADIR}/omim_hpo.annot
+setenv ANNOTLOG		${ANNOTINPUTFILE}.log
+setenv DELETEREFERENCE	"J:229231"
+setenv DELETEUSER	omim_hpoload
+setenv ANNOTOBSOLETE	0

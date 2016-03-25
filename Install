@@ -1,0 +1,70 @@
+#!/bin/sh
+
+#
+# Installation script
+#
+# 1) cp omim_hpoload.config.default omim_hpoload.config
+# 2) cp annotload.config.default annotload.config
+# 3) Install 
+#
+
+Usage=Install
+
+#
+#  Function called when the install fails.
+#
+installFailed ()
+{
+    echo "Installation Failed: `date`"
+    exit 1
+}
+
+#
+#  Verify the arguments to the script, there shouldn't be any
+#
+if [ $# -ne 0 ]
+then
+    echo "Usage: ${Usage}"
+    installFailed
+fi
+
+#
+# Make sure config files exist
+#
+cd `dirname $0`
+
+# establish the config files
+MAIN_CONFIG=omim_hpoload.config
+
+# Make sure config file exists and source it
+if [ -r ${MAIN_CONFIG} ]
+then
+    echo "Source ${MAIN_CONFIG}"
+    . ${MAIN_CONFIG}
+else
+    echo "Cannot source configuration file: ${MAIN_CONFIG}"
+    installFailed
+fi
+
+# Check to see if this is a development installation
+#
+DEV=""
+if [ "${INSTALL_TYPE}" = "dev" ]
+then
+    DEV="-d"
+fi
+
+#
+# run DLAInstall for each configuration file
+#
+echo 'running DLAINSTALL'
+${DLAINSTALL} ${DEV}
+
+#
+# Create the input directory if it doesn't exist.
+#
+if [ ! -d ${INPUTDIR} ]
+then
+    mkdir -p ${INPUTDIR}
+fi
+
