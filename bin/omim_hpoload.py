@@ -63,7 +63,6 @@ fpAnnotFile = None
 # QC file and descriptor
 qcFileName = os.environ['QCFILE_NAME']
 fpQcFile = None
-print qcFileName
 # reference for the load
 jnumID = os.environ['JNUM']
 
@@ -123,7 +122,6 @@ def initialize():
 	fpAnnotFile = open(annotFileName, 'w')
     except:
 	print '%s does not exist' % annotFileName
-    print 'opening QC file'
     try:
 	fpQcFile = open(qcFileName, 'w')
     except:
@@ -137,7 +135,6 @@ def initialize():
 		where _Vocab_key = 107''', 'auto')
     for r in results:
 	evidenceList.append(r['abbreviation'])
-    print evidenceList
 
     # load annotation qualifier lookup
     results = db.sql('''select term
@@ -145,7 +142,6 @@ def initialize():
                 where _Vocab_key = 108''', 'auto')
     for r in results:
         qualifierList.append(r['term'].lower())
-    print qualifierList
 
     # load lookup of OMIM IDs in the database
     results = db.sql('''select a.accid, t.isObsolete 
@@ -294,10 +290,7 @@ def closeFiles():
 # main
 #
 
-print 'calling init'
 initialize()
-print 'calling process'
 process()
-print 'calling close'
 closeFiles()
 
