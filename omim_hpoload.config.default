@@ -87,7 +87,10 @@ export JOBSTREAM
 #  The name of the load for the subject of an email notification
 MAIL_LOADNAME="OMIM/HPO annotation load"
 
-export MAIL_LOADNAME
+#  Recipient list for mailing the log files (comma-separated)
+MAIL_LOG_PROC="mgiadmin"
+
+export MAIL_LOADNAME MAIL_LOG_PROC
 
 INSTALLDIR=${OMIMHPOLOAD}
 export INSTALLDIR
