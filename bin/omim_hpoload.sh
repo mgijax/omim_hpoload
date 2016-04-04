@@ -115,7 +115,7 @@ checkStatus ${STAT} "${OMIMHPOLOAD}/bin/omim_hpoload.py"
 ANNOTLOAD_CONFIG=${OMIMHPOLOAD}/annotload.config
 echo "Running OMIM/HPO annotation load" >> ${LOG_DIAG}
 cd ${OUTPUTDIR}
-${ANNOTLOADER} ${ANNOTLOAD_CONFIG} >> ${LOG_DIAG} 
+${ANNOTLOADER} ${ANNOTLOAD_CONFIG} omimhpo >> ${LOG_DIAG} 
 STAT=$?
 checkStatus ${STAT} "${ANNOTLOADER} ${ANNOTLOAD_CONFIG} omimhpo"
 
