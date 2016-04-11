@@ -53,6 +53,15 @@ COMMON_CONFIG=omim_hpoload.config
 USAGE="Usage: omimhpo.sh"
 
 #
+#  Verify the argument(s) to the shell script.
+#
+if [ $# -ne 0 ]
+then
+    echo ${USAGE} | tee -a ${LOG}
+    exit 1
+fi
+
+#
 # Make sure the common configuration file exists and source it.
 #
 if [ -f ../${COMMON_CONFIG} ]
@@ -86,6 +95,17 @@ then
 else
     echo "Environment variable DLAJOBSTREAMFUNC has not been defined." | tee -a ${LOG}
     exit 1
+fi
+
+#
+# verify input file exists and is readable
+#
+
+if [ ! -r ${INPUT_FILE_DEFAULT} ]
+then
+    # set STAT for endJobStream.py
+    STAT=1
+    checkStatus ${STAT} "Cannot read from input file: ${INPUT_FILE_DEFAULT}"
 fi
 
 #####################################
