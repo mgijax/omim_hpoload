@@ -1,3 +1,9 @@
+TAG: omim_hpoload-6-0-5-2
+DATE: 06/14/2016
+STAFF: sc
+CHANGES: TR12267 Project HIPPO
+1) added .gitignore
+
 TAG: omim_hpoload-6-0-5-1
 DATE: 03/25/2016
 STAFF: sc
