@@ -206,6 +206,7 @@ def process():
 	if databaseID != 'OMIM':
 	    continue
 
+	# attached prefix because this format used in the MGI OMIM vocabulary
 	omimID = 'OMIM:' + tokens[1]
 	omimName = tokens[2]
 
