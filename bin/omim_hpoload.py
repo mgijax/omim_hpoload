@@ -198,16 +198,21 @@ def process():
 	# field 11: Aspect
 	# field 12: Synonym
 	# field 13: Date
+
 	hasError = 0
 	tokens = string.split(line[:-1], '\t')
 	databaseID = tokens[0]
+
 	if databaseID != 'OMIM':
 	    continue
-	omimID = tokens[1]
+
+	omimID = 'OMIM:' + tokens[1]
 	omimName = tokens[2]
+
         qualifier = tokens[3].lower()
 	if qualifier == '':
 	    qualifier = 'Not Specified'
+
 	hpoID = tokens[4]
 	references = tokens[5]
 	evidenceCode = tokens[6]
@@ -217,16 +222,20 @@ def process():
 	aspect = tokens[10]
 	synonym = tokens[11] 
 	date = tokens[12]
+
 	if evidenceCode not in evidenceList:
 	    evidErrorList.append(line)
 	    hasError = 1
+
 	if qualifier.lower() not in qualifierList:
 	    qualErrorList.append(line)
 	    hasError = 1
+
 	# check to see if in database
 	if hpoID not in hpoList:
 	    invalidHPOList.append(line)
 	    hasError = 1
+
 	# check to see if in database
 	if omimID not in omimDict.keys():
 	   invalidOMIMList.append(line)
@@ -236,8 +245,10 @@ def process():
 	    if omimDict[omimID] == 1:
 		obsoleteOMIMList.append(line)
 		hasError = 1
+
 	if hasError:
 	    continue
+
 	aLine = annotLine % (hpoID, omimID, jnumID, evidenceCode, inferredFrom, qualifier, editor, date, notes, databaseID)
 	annotToWriteDict[aLine] = ''
 	    
