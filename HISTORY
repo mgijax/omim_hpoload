@@ -5,6 +5,8 @@ DATE: 03/01/2017
 STAFF: lec
 CHANGES: 
 TR12540/Disease Ontology (DO) All The Way
+the HPO input files uses OMIM ids
+the OMIM ids must now be translated to DO ids
 
 TAG: omim_hpoload-6-0-8-1
 DATE: 01/18/2017, 02/14/2017
