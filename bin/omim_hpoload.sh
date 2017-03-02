@@ -124,7 +124,7 @@ preload ${OUTPUTDIR}
 # create input file
 #
 echo 'Running omim_hpoload.py'  | tee -a ${LOG_DIAG}
-${OMIMHPOLOAD}/bin/omim_hpoload.py #>> ${LOG_DIAG}
+${OMIMHPOLOAD}/bin/omim_hpoload.py >> ${LOG_DIAG}
 STAT=$?
 checkStatus ${STAT} "${OMIMHPOLOAD}/bin/omim_hpoload.py"
 
