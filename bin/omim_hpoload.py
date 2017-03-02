@@ -35,12 +35,17 @@
 #		field 7: Editor
 #		field 8: Date (from OMIM/HPO input file)
 #		field 9: Notes (blank)
+#		field 10: Disease Ontology
 #
 #
 # Usage:
 #       omim_hpoload.py
 #
 # History:
+#
+# lec	03/02/2017
+#	- TR12540/Disease Ontology
+#	input file contains OMIM ids, output/annotation files needs to use 'Disease Ontology'
 #
 # sc   03/16/2016
 #       - created TR12267
@@ -99,8 +104,14 @@ invalidHPOList = []
 # lines with invalid OMIM IDs
 invalidOMIMList = []
 
+# lines with OMIM IDs that do not map to DO
+invalidDOList = []
+
 # lines with obsolete OMIM IDs
 obsoleteOMIMList = []
+
+# lookup omim id -> do id
+omimToDOLookup = {}
 
 #
 # Purpose:  Open and copy files. Create lookups
@@ -111,7 +122,7 @@ obsoleteOMIMList = []
 #
 def initialize():
     global fpInFile, fpAnnotFile, fpQcFile, evidenceList, qualifierList
-    global omimDict, hpoList
+    global omimDict, hpoList, omimToDOLookup
 
     # create file descriptors
     try:
@@ -165,6 +176,28 @@ def initialize():
 	hpoList.append(r['accid'])
     db.useOneConnection(0)
 
+    #   
+    # omimToDOLookup
+    # omim id -> do id
+    #   
+    results = db.sql('''
+       	select a1.accID as doID, a2.accID as omimID
+       	from ACC_Accession a1, VOC_Term t, ACC_Accession a2, ACC_Accession a3, VOC_Term t2
+       	where t._Vocab_key = 125 
+       	and t._Term_key = a1._Object_key
+       	and a1._LogicalDB_key = 191 
+       	and a1._Object_key = a2._Object_key
+       	and a2._LogicalDB_key = 15
+       	and a2.accID = a3.accID
+       	and a3._LogicalDB_key = 15
+       	and a3._Object_key = t2._Term_key
+       	''', 'auto')
+    for r in results:
+        key = r['omimID']
+        value = r['doID']
+        omimToDOLookup[key] = []
+        omimToDOLookup[key].append(value)
+
 #
 # Purpose: Read input file and generate Annotation file
 # Returns: 1 if file can be read/processed correctly, else 0
@@ -174,7 +207,8 @@ def initialize():
 #
 def process():
     global evidErrorList, qualErrorList, fpQcFile
-    global invalidOMIMList, invalidHPOList, obsoleteOMIMList
+    global invalidOMIMList, invalidDOList, invalidHPOList, obsoleteOMIM
+
     # build a dictionary of lines to write to output file (annotload input file)
     annotToWriteDict = {}
 
@@ -209,6 +243,11 @@ def process():
 	# attached prefix because this format used in the MGI OMIM vocabulary
 	omimID = 'OMIM:' + tokens[1]
 	omimName = tokens[2]
+
+	#
+	# TR12540/Disease Ontology (DO)
+	# translate OMIM id to DO id
+	#
 
         qualifier = tokens[3].lower()
 	if qualifier == '':
@@ -247,10 +286,22 @@ def process():
 		obsoleteOMIMList.append(line)
 		hasError = 1
 
+	# check to see if OMIM id maps to DO
+	if omimID not in omimToDOLookup:
+	   invalidDOList.append(line)
+	   hasError = 1
+	else:
+	    doID = omimToDOLookup[omimID][0]
+
 	if hasError:
 	    continue
 
-	aLine = annotLine % (hpoID, omimID, jnumID, evidenceCode, inferredFrom, qualifier, editor, date, notes, databaseID)
+	#
+	# change ddatabaseID from 'OMIM' to 'Disease Ontology'
+	# see select * from ACC_LogicalDB where _LogicalDB_key = 191
+	#
+	databaseID = 'Disease Ontology'
+	aLine = annotLine % (hpoID, doID, jnumID, evidenceCode, inferredFrom, qualifier, editor, date, notes, databaseID)
 	annotToWriteDict[aLine] = ''
 	    
     #
@@ -274,6 +325,11 @@ def process():
     fpQcFile.write('--------------------------------------------------\n')
     fpQcFile.write(string.join(invalidOMIMList))
     fpQcFile.write('\nTotal: %s\n' % len(invalidOMIMList))
+
+    fpQcFile.write('\nLines with OMIM IDs that do not map to DO\n')
+    fpQcFile.write('--------------------------------------------------\n')
+    fpQcFile.write(string.join(invalidDOList))
+    fpQcFile.write('\nTotal: %s\n' % len(invalidDOList))
 
     fpQcFile.write('\nLines with obsolete OMIM IDs\n')
     fpQcFile.write('--------------------------------------------------\n')
