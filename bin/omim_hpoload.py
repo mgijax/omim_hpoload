@@ -179,18 +179,27 @@ def initialize():
     #   
     # omimToDOLookup
     # omim id -> do id
+    # only translate OMIM->DO where OMIM translates to at most one DO id
     #   
     results = db.sql('''
-       	select a1.accID as doID, a2.accID as omimID
-       	from ACC_Accession a1, VOC_Term t, ACC_Accession a2, ACC_Accession a3, VOC_Term t2
-       	where t._Vocab_key = 125 
-       	and t._Term_key = a1._Object_key
-       	and a1._LogicalDB_key = 191 
-       	and a1._Object_key = a2._Object_key
-       	and a2._LogicalDB_key = 15
-       	and a2.accID = a3.accID
-       	and a3._LogicalDB_key = 15
-       	and a3._Object_key = t2._Term_key
+	WITH includeOMIM AS (
+	select a2.accID
+	from ACC_Accession a1, ACC_Accession a2
+	where a1._MGIType_key = 13
+	and a1._LogicalDB_key = 191
+	and a1._Object_key = a2._Object_key
+	and a1.preferred = 1
+	and a2._LogicalDB_key = 15
+	group by a2.accID having count(*) = 1
+	)
+	select distinct a1.accID as doID, a2.accID as omimID
+	from includeOMIM d, ACC_Accession a1, VOC_Term t, ACC_Accession a2
+	where d.accID = a2.accID
+	and t._Vocab_key = 125
+	and t._Term_key = a1._Object_key
+	and a1._LogicalDB_key = 191
+	and a1._Object_key = a2._Object_key
+	and a2._LogicalDB_key = 15
        	''', 'auto')
     for r in results:
         key = r['omimID']
