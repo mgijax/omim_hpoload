@@ -198,7 +198,6 @@ def initialize():
 	and t._Vocab_key = 125
 	and t._Term_key = a1._Object_key
 	and a1._LogicalDB_key = 191
-	and a1.preferred = 1
 	and a1._Object_key = a2._Object_key
 	and a2._LogicalDB_key = 15
        	''', 'auto')
