@@ -45,7 +45,8 @@
 #
 # lec	03/02/2017
 #	- TR12540/Disease Ontology
-#	input file contains OMIM ids, output/annotation files needs to use 'Disease Ontology'
+#	  input file contains OMIM ids, output/annotation files needs to use 'Disease Ontology'
+#	  add ORPHO/ORDO processing
 #
 # sc   03/16/2016
 #       - created TR12267
@@ -113,6 +114,9 @@ obsoleteOMIMList = []
 # lookup omim id -> do id
 omimToDOLookup = {}
 
+# lookup ordo id -> do id
+ordoToDOLookup = {}
+
 #
 # Purpose:  Open and copy files. Create lookups
 # Returns: 1 if file does not exist or is not readable, else 0
@@ -122,7 +126,7 @@ omimToDOLookup = {}
 #
 def initialize():
     global fpInFile, fpAnnotFile, fpQcFile, evidenceList, qualifierList
-    global omimDict, hpoList, omimToDOLookup
+    global omimDict, hpoList, omimToDOLookup, ordoToDOLookup
 
     # create file descriptors
     try:
@@ -207,6 +211,35 @@ def initialize():
         omimToDOLookup[key] = []
         omimToDOLookup[key].append(value)
 
+    #   
+    # ordoToDOLookup
+    # ordo id -> do id
+    # only translate ORDO->DO where ORDO translates to at most one DO id
+    #   
+    results = db.sql('''
+	WITH includeORDO AS (
+	select a2.accID
+	from ACC_Accession a1, ACC_Accession a2
+	where a1._MGIType_key = 13
+	and a1._LogicalDB_key = 191
+	and a1._Object_key = a2._Object_key
+	and a1.preferred = 1
+	and a2._LogicalDB_key = 196
+	group by a2.accID having count(*) = 1
+	)
+	select distinct a1.accID as doID, a2.accID as ordoID
+	from includeORDO d, ACC_Accession a1, ACC_Accession a2
+	where d.accID = a2.accID
+	and a1._LogicalDB_key = 191
+	and a1._Object_key = a2._Object_key
+	and a2._LogicalDB_key = 196
+       	''', 'auto')
+    for r in results:
+        key = r['ordoID']
+        value = r['doID']
+        ordoToDOLookup[key] = []
+        ordoToDOLookup[key].append(value)
+
 #
 # Purpose: Read input file and generate Annotation file
 # Returns: 1 if file can be read/processed correctly, else 0
@@ -228,7 +261,7 @@ def process():
     for line in fpInFile.readlines():
     	lineNum += 1
 
-	# field 1: Database ID ('OMIM')
+	# field 1: Database ID ('OMIM', 'ORPHA')
 	# field 2: OMIM ID
 	# field 3: OMIM Name
 	# field 4: Qualifier
@@ -246,17 +279,21 @@ def process():
 	tokens = string.split(line[:-1], '\t')
 	databaseID = tokens[0]
 
-	if databaseID != 'OMIM':
+	isOMIM = 0
+	isORDO = 0
+
+	# determine if databaseID is OMIM, ORPHA/ORDO
+
+	if databaseID in ('OMIM'):
+	    omimID = 'OMIM:' + tokens[1]
+	    #omimName = tokens[2]
+	    isOMIM = 1
+	elif databaseID in ('ORPHA'):
+	    ordoID = 'ORDO:' + tokens[1]
+	    #ordoName = tokens[2]
+	    isORDO = 1
+	else
 	    continue
-
-	# attached prefix because this format used in the MGI OMIM vocabulary
-	omimID = 'OMIM:' + tokens[1]
-	omimName = tokens[2]
-
-	#
-	# TR12540/Disease Ontology (DO)
-	# translate OMIM id to DO id
-	#
 
         qualifier = tokens[3].lower()
 	if qualifier == '':
@@ -285,22 +322,38 @@ def process():
 	    invalidHPOList.append(line)
 	    hasError = 1
 
-	# check to see if in database
-	if omimID not in omimDict.keys():
-	   invalidOMIMList.append(line)
-	   hasError = 1
-	else:
-	    # check to see if obsolete
-	    if omimDict[omimID] == 1:
-		obsoleteOMIMList.append(line)
-		hasError = 1
+	#
+	# OMIM verification checks
+	#
+	if isOMIM:
 
-	# check to see if OMIM id maps to DO
-	if omimID not in omimToDOLookup:
-	   invalidDOList.append(line)
-	   hasError = 1
-	else:
-	    doID = omimToDOLookup[omimID][0]
+	    # check to see if in database
+	    if omimID not in omimDict.keys():
+	       invalidOMIMList.append(line)
+	       hasError = 1
+	    else:
+	        # check to see if obsolete
+	        if omimDict[omimID] == 1:
+		    obsoleteOMIMList.append(line)
+		    hasError = 1
+
+	    # check to see if OMIM id maps to DO (TR12540)
+	    if omimID not in omimToDOLookup:
+	       invalidDOList.append(line)
+	       hasError = 1
+	    else:
+	       doID = omimToDOLookup[omimID][0]
+
+	#
+	# ORPHA/ORDO verification checks
+	#
+	if isORDO:
+	    # check to see if ORDO id maps to DO (TR12540)
+	    if ordoID not in ordoToDOLookup:
+	       invalidDOList.append(line)
+	       hasError = 1
+	    else:
+	       doID = ordoToDOLookup[ordoID][0]
 
 	if hasError:
 	    continue
@@ -335,7 +388,7 @@ def process():
     fpQcFile.write(string.join(invalidOMIMList))
     fpQcFile.write('\nTotal: %s\n' % len(invalidOMIMList))
 
-    fpQcFile.write('\nLines with OMIM IDs that do not map to DO\n')
+    fpQcFile.write('\nLines with OMIM/ORDO IDs that do not map to DO\n')
     fpQcFile.write('--------------------------------------------------\n')
     fpQcFile.write(string.join(invalidDOList))
     fpQcFile.write('\nTotal: %s\n' % len(invalidDOList))
