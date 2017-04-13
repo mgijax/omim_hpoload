@@ -6,11 +6,11 @@
 #
 #	See http://mgiwiki/mediawiki/index.php/sw:Omim_hpoload
 #
-# 	The OMIM/HPO file contains:
+# 	Input file contains::
 #
-# 		field 1: Database ID ('OMIM')
-# 		field 2: OMIM ID
-# 		field 3: OMIM Name
+# 		field 1: Database ID ('OMIM', 'ORPHA')
+# 		field 2: Accession ID
+# 		field 3: Name
 # 		field 4: Qualifier
 # 		field 5: HPO ID
 # 		field 6: References
@@ -29,11 +29,11 @@
 #		field 1: Accession ID of Vocabulary Term being Annotated to
 #		field 2: ID of MGI Object being Annotated (e.g. HPO ID)
 #		field 3: J:229231
-#		field 4: Evidence Code  (from OMIM/HPO input file)
+#		field 4: Evidence Code  (from input file)
 #		field 5: Inferred From (blank)
-#		field 6: Qualifier (from OMIM/HPO input file)
+#		field 6: Qualifier (from input file)
 #		field 7: Editor
-#		field 8: Date (from OMIM/HPO input file)
+#		field 8: Date (from input file)
 #		field 9: Notes (blank)
 #		field 10: Disease Ontology
 #
@@ -45,8 +45,7 @@
 #
 # lec	03/02/2017
 #	- TR12540/Disease Ontology
-#	  input file contains OMIM ids, output/annotation files needs to use 'Disease Ontology'
-#	  add ORPHO/ORDO processing
+#	  translate OMIM/ORPHA ids to Disease Ontology (DO) ids
 #
 # sc   03/16/2016
 #       - created TR12267
@@ -58,7 +57,7 @@ import os
 import string
 import db
 
-# OMIM/HPO file and descriptor
+# input file and descriptor
 inFileName = os.environ['INFILE_NAME']
 fpInFile = None
 
@@ -75,10 +74,10 @@ jnumID = os.environ['JNUM']
 # annotation editor value
 editor = os.environ['EDITOR']
 
-# list of OMIM/HPO evidence codes from the database
+# list of evidence codes from the database
 evidenceList = []
 
-# list of OMIM/HPO annotation qualifiers from the database
+# list of annotation qualifiers from the database
 qualifierList = []
 
 # omim ID: obsolete or active
@@ -105,7 +104,7 @@ invalidHPOList = []
 # lines with invalid OMIM IDs
 invalidOMIMList = []
 
-# lines with OMIM IDs that do not map to DO
+# lines with accession IDs that do not map to DO
 invalidDOList = []
 
 # lines with obsolete OMIM IDs
@@ -261,9 +260,9 @@ def process():
     for line in fpInFile.readlines():
     	lineNum += 1
 
-	# field 1: Database ID ('OMIM', 'ORPHA')
-	# field 2: OMIM ID
-	# field 3: OMIM Name
+	# field 1: Database ID
+	# field 2: Accession ID
+	# field 3: Name
 	# field 4: Qualifier
 	# field 5: HPO ID
 	# field 6: References
@@ -359,7 +358,7 @@ def process():
 	    continue
 
 	#
-	# change ddatabaseID from 'OMIM' to 'Disease Ontology'
+	# set databaseID = 'Disease Ontology'
 	# see select * from ACC_LogicalDB where _LogicalDB_key = 191
 	#
 	databaseID = 'Disease Ontology'
