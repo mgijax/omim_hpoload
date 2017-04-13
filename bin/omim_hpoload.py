@@ -291,7 +291,7 @@ def process():
 	    ordoID = 'ORDO:' + tokens[1]
 	    #ordoName = tokens[2]
 	    isORDO = 1
-	else
+	else:
 	    continue
 
         qualifier = tokens[3].lower()
@@ -346,7 +346,7 @@ def process():
 	#
 	# ORPHA/ORDO verification checks
 	#
-	if isORDO:
+	elif isORDO:
 	    # check to see if ORDO id maps to DO (TR12540)
 	    if ordoID not in ordoToDOLookup:
 	       invalidDOList.append(line)
