@@ -1,7 +1,7 @@
 ${MIRROR_WGET}/download_package compbio.charite.de.phenotype_annotation
 
-TAG: omim_hpoload-6-0-10-?
-DATE: 03/01/2017, 04/13/2017
+TAG: omim_hpoload-6-0-10-1
+DATE: 04/27/2017
 STAFF: lec
 CHANGES: 
 TR12540/Disease Ontology (DO) All The Way
