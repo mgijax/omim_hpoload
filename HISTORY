@@ -1,5 +1,6 @@
 ${MIRROR_WGET}/download_package compbio.charite.de.phenotype_annotation
 
+TAG: omim_hpoload-6-0-13-2
 TAG: omim_hpoload-6-0-13-1
 DATE: 03/13/2019
 STAFF: sc
