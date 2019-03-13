@@ -1,5 +1,10 @@
 ${MIRROR_WGET}/download_package compbio.charite.de.phenotype_annotation
 
+TAG: omim_hpoload-6-0-13-1
+DATE: 03/13/2019
+STAFF: sc
+CHANGES: TR13054 update for new file format and requirements
+
 TAG: omim_hpoload-6-0-10-1
 DATE: 04/27/2017
 STAFF: lec
