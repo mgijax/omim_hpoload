@@ -8,20 +8,18 @@
 #
 # 	Input file contains::
 #
-# 		field 1: Database ID ('OMIM', 'ORPHA')
-# 		field 2: Accession ID
-# 		field 3: Name
-# 		field 4: Qualifier
-# 		field 5: HPO ID
-# 		field 6: References
-# 		field 7: Evidence code
-# 		field 8: Onset Modifier
-# 		field 9: Frequency Modifier
-#		field 10: With
-#               field 11: Aspect
-#               field 12: Synonym
-#               field 13: Date
-#               field 14: Assigned By
+# 		field 1: Database ID (DECIPHER:, OMIM:, ORPHA:)
+# 		field 2: Disease Name (not used)
+# 		field 3: Qualifier
+# 		field 4: HPO ID
+# 		field 5: References (not used)
+# 		field 6: Evidence code
+# 		field 7: Onset (not used)
+# 		field 8: Frequency (not used)
+#		field 9: Sex (not used)
+#		field 10: Modifier (not used)
+#               field 11: Aspect (not used)
+#               field 12: Biocuration (contains date)
 #
 # 	The annotation loader format has the following columns:
 #
@@ -35,13 +33,16 @@
 #		field 7: Editor
 #		field 8: Date (from input file)
 #		field 9: Notes (blank)
-#		field 10: Disease Ontology
+#		field 10: 'Disease Ontology'
 #
 #
 # Usage:
 #       omim_hpoload.py
 #
 # History:
+#
+# sc	03/13/19
+#	- TR13054/Update load for new input file format
 #
 # lec	03/02/2017
 #	- TR12540/Disease Ontology
@@ -259,23 +260,28 @@ def process():
     lineNum = 0
     for line in fpInFile.readlines():
     	lineNum += 1
-
-	# field 1: Database ID
-	# field 2: Accession ID
-	# field 3: Name
-	# field 4: Qualifier
-	# field 5: HPO ID
-	# field 6: References
-	# field 7: Evidence code
-	# field 8: Onset Modifier
-	# field 9: Frequency Modifier
-	# field 10: With
-	# field 11: Aspect
-	# field 12: Synonym
-	# field 13: Date
+	
+        # skip commented lines
+	if string.find(line, '#') == 0:
+	    continue
+	# skip column header
+	if string.find(line, 'DatabaseID') == 0:
+	    continue
 
 	hasError = 0
 	tokens = string.split(line[:-1], '\t')
+
+	# get qualifer and resolve/verify
+	# if NOT - skip
+        qualifier = tokens[2]
+	if qualifier == 'NOT':
+	    continue
+        if qualifier == '':
+            qualifier = 'Not Specified'
+        if qualifier.lower() not in qualifierList:
+            qualErrorList.append(line)
+            hasError = 1
+
 	databaseID = tokens[0]
 
 	isOMIM = 0
@@ -283,43 +289,33 @@ def process():
 
 	# determine if databaseID is OMIM, ORPHA/ORDO
 
-	if databaseID in ('OMIM'):
-	    omimID = 'OMIM:' + tokens[1]
-	    #omimName = tokens[2]
+	if string.find(databaseID, 'OMIM') != -1:
+	    omimID = databaseID
 	    isOMIM = 1
-	elif databaseID in ('ORPHA'):
-	    ordoID = 'ORDO:' + tokens[1]
-	    #ordoName = tokens[2]
+	elif string.find(databaseID, 'ORPHA') != -1:
+	    # IDs are prefixed 'ORPHA' in file 'ORDO' in database
+	    ordoID = databaseID.replace('ORPHA', 'ORDO')
 	    isORDO = 1
-	else:
+	else: # DECIPHER:
 	    continue
 
-        qualifier = tokens[3].lower()
-	if qualifier == '':
-	    qualifier = 'Not Specified'
+	# get HPO ID and verify
+	hpoID = tokens[3]
+        if hpoID not in hpoList:
+            invalidHPOList.append(line)
+            hasError = 1
 
-	hpoID = tokens[4]
-	references = tokens[5]
-	evidenceCode = tokens[6]
-	onsetModifier =  tokens[7]
-	freqModifer = tokens[8]
-	withValue = tokens[9]
-	aspect = tokens[10]
-	synonym = tokens[11] 
-	date = tokens[12]
-
+	# get evidence code and verify
+	evidenceCode = tokens[5]
 	if evidenceCode not in evidenceList:
-	    evidErrorList.append(line)
-	    hasError = 1
+	    evidenceCode = 'TAS' # per TR13054, but still report
+            evidErrorList.append(line)
+            hasError = 1
 
-	if qualifier.lower() not in qualifierList:
-	    qualErrorList.append(line)
-	    hasError = 1
-
-	# check to see if in database
-	if hpoID not in hpoList:
-	    invalidHPOList.append(line)
-	    hasError = 1
+	# get date
+	biocuration = tokens[11]
+	tokens = string.split(biocuration, '[')
+	date = string.split(tokens[1], ']')[0]
 
 	#
 	# OMIM verification checks
@@ -372,7 +368,7 @@ def process():
         #line = line  + string.join(pList, '&===&') + '\n'
         fpAnnotFile.write(line)
 
-    fpQcFile.write('Lines with invalid Evidence Codes\n')
+    fpQcFile.write('Lines with invalid Evidence Codes\n These are loaded with "TAS"\n')
     fpQcFile.write('--------------------------------------------------\n')
     fpQcFile.write(string.join(evidErrorList))
     fpQcFile.write('\nTotal: %s\n' % len(evidErrorList))
