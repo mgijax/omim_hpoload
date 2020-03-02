@@ -1,5 +1,13 @@
 ${MIRROR_WGET}/download_package compbio.charite.de.phenotype_annotation
 
+TAG: omim_hpoload-6-0-15-1
+DATE: 03/02/2020
+STAFF: sc
+CHANGES: TR13275
+1) omim_hpoload.config.default: update INFILE_NAME to point to new input file 
+    (dir misc_2018 --> current)
+2) index.html: update path to new input file
+
 TAG: omim_hpoload-6-0-14-1
 DATE: 12/17/2019
 STAFF: dbm
