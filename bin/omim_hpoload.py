@@ -1,5 +1,3 @@
-#!/usr/local/bin/python
-
 '''
 #
 # omim_hpoload.py
@@ -55,7 +53,6 @@
 
 import sys
 import os
-import string
 import db
 
 # input file and descriptor
@@ -130,26 +127,26 @@ def initialize():
 
     # create file descriptors
     try:
-	fpInFile = open(inFileName, 'r')
+        fpInFile = open(inFileName, 'r')
     except:
-	print '%s does not exist' % inFileName
+        print('%s does not exist' % inFileName)
     try:
-	fpAnnotFile = open(annotFileName, 'w')
+        fpAnnotFile = open(annotFileName, 'w')
     except:
-	print '%s does not exist' % annotFileName
+        print('%s does not exist' % annotFileName)
     try:
-	fpQcFile = open(qcFileName, 'w')
+        fpQcFile = open(qcFileName, 'w')
     except:
-	 print '%s does not exist' % qcFileName
+         print('%s does not exist' % qcFileName)
 
     db.useOneConnection(1)
 
     # load evidence code lookup
     results = db.sql('''select abbreviation
-		from VOC_Term
-		where _Vocab_key = 107''', 'auto')
+                from VOC_Term
+                where _Vocab_key = 107''', 'auto')
     for r in results:
-	evidenceList.append(r['abbreviation'])
+        evidenceList.append(r['abbreviation'])
 
     # load annotation qualifier lookup
     results = db.sql('''select term
@@ -163,11 +160,11 @@ def initialize():
             from ACC_Accession a, VOC_Term t
             where a._LogicalDB_key = 15
             and a._MGIType_key = 13
-	    and a.preferred = 1
-	    and a._Object_key = t._Term_key''', 'auto')
+            and a.preferred = 1
+            and a._Object_key = t._Term_key''', 'auto')
     for r in results:
-	accid = r['accid']
-	omimDict[r['accid']] =  r['isObsolete']
+        accid = r['accid']
+        omimDict[r['accid']] =  r['isObsolete']
 
     # load lookup of HPO IDs in the database
     results = db.sql('''select a.accid
@@ -177,7 +174,7 @@ def initialize():
             and a.preferred = 1
             and a._Object_key = t._Term_key''', 'auto')
     for r in results:
-	hpoList.append(r['accid'])
+        hpoList.append(r['accid'])
     db.useOneConnection(0)
 
     #   
@@ -186,25 +183,25 @@ def initialize():
     # only translate OMIM->DO where OMIM translates to at most one DO id
     #   
     results = db.sql('''
-	WITH includeOMIM AS (
-	select a2.accID
-	from ACC_Accession a1, ACC_Accession a2
-	where a1._MGIType_key = 13
-	and a1._LogicalDB_key = 191
-	and a1._Object_key = a2._Object_key
-	and a1.preferred = 1
-	and a2._LogicalDB_key = 15
-	group by a2.accID having count(*) = 1
-	)
-	select distinct a1.accID as doID, a2.accID as omimID
-	from includeOMIM d, ACC_Accession a1, VOC_Term t, ACC_Accession a2
-	where d.accID = a2.accID
-	and t._Vocab_key = 125
-	and t._Term_key = a1._Object_key
-	and a1._LogicalDB_key = 191
-	and a1._Object_key = a2._Object_key
-	and a2._LogicalDB_key = 15
-       	''', 'auto')
+        WITH includeOMIM AS (
+        select a2.accID
+        from ACC_Accession a1, ACC_Accession a2
+        where a1._MGIType_key = 13
+        and a1._LogicalDB_key = 191
+        and a1._Object_key = a2._Object_key
+        and a1.preferred = 1
+        and a2._LogicalDB_key = 15
+        group by a2.accID having count(*) = 1
+        )
+        select distinct a1.accID as doID, a2.accID as omimID
+        from includeOMIM d, ACC_Accession a1, VOC_Term t, ACC_Accession a2
+        where d.accID = a2.accID
+        and t._Vocab_key = 125
+        and t._Term_key = a1._Object_key
+        and a1._LogicalDB_key = 191
+        and a1._Object_key = a2._Object_key
+        and a2._LogicalDB_key = 15
+        ''', 'auto')
     for r in results:
         key = r['omimID']
         value = r['doID']
@@ -217,23 +214,23 @@ def initialize():
     # only translate ORDO->DO where ORDO translates to at most one DO id
     #   
     results = db.sql('''
-	WITH includeORDO AS (
-	select a2.accID
-	from ACC_Accession a1, ACC_Accession a2
-	where a1._MGIType_key = 13
-	and a1._LogicalDB_key = 191
-	and a1._Object_key = a2._Object_key
-	and a1.preferred = 1
-	and a2._LogicalDB_key = 196
-	group by a2.accID having count(*) = 1
-	)
-	select distinct a1.accID as doID, a2.accID as ordoID
-	from includeORDO d, ACC_Accession a1, ACC_Accession a2
-	where d.accID = a2.accID
-	and a1._LogicalDB_key = 191
-	and a1._Object_key = a2._Object_key
-	and a2._LogicalDB_key = 196
-       	''', 'auto')
+        WITH includeORDO AS (
+        select a2.accID
+        from ACC_Accession a1, ACC_Accession a2
+        where a1._MGIType_key = 13
+        and a1._LogicalDB_key = 191
+        and a1._Object_key = a2._Object_key
+        and a1.preferred = 1
+        and a2._LogicalDB_key = 196
+        group by a2.accID having count(*) = 1
+        )
+        select distinct a1.accID as doID, a2.accID as ordoID
+        from includeORDO d, ACC_Accession a1, ACC_Accession a2
+        where d.accID = a2.accID
+        and a1._LogicalDB_key = 191
+        and a1._Object_key = a2._Object_key
+        and a2._LogicalDB_key = 196
+        ''', 'auto')
     for r in results:
         key = r['ordoID']
         value = r['doID']
@@ -259,143 +256,143 @@ def process():
 
     lineNum = 0
     for line in fpInFile.readlines():
-    	lineNum += 1
-	
+        lineNum += 1
+        
         # skip commented lines
-	if string.find(line, '#') == 0:
-	    continue
-	# skip column header
-	if string.find(line, 'DatabaseID') == 0:
-	    continue
+        if line.find('#') == 0:
+            continue
+        # skip column header
+        if line.find('DatabaseID') == 0:
+            continue
 
-	hasError = 0
-	tokens = string.split(line[:-1], '\t')
+        hasError = 0
+        tokens = str.split(line[:-1], '\t')
 
-	# get qualifer and resolve/verify
-	# if NOT - skip
+        # get qualifer and resolve/verify
+        # if NOT - skip
         qualifier = tokens[2]
-	if qualifier == 'NOT':
-	    continue
+        if qualifier == 'NOT':
+            continue
         if qualifier == '':
             qualifier = 'Not Specified'
         if qualifier.lower() not in qualifierList:
             qualErrorList.append(line)
             hasError = 1
 
-	databaseID = tokens[0]
+        databaseID = tokens[0]
 
-	isOMIM = 0
-	isORDO = 0
+        isOMIM = 0
+        isORDO = 0
 
-	# determine if databaseID is OMIM, ORPHA/ORDO
+        # determine if databaseID is OMIM, ORPHA/ORDO
 
-	if string.find(databaseID, 'OMIM') != -1:
-	    omimID = databaseID
-	    isOMIM = 1
-	elif string.find(databaseID, 'ORPHA') != -1:
-	    # IDs are prefixed 'ORPHA' in file 'ORDO' in database
-	    ordoID = databaseID.replace('ORPHA', 'ORDO')
-	    isORDO = 1
-	else: # DECIPHER:
-	    continue
+        if databaseID.find('OMIM') != -1:
+            omimID = databaseID
+            isOMIM = 1
+        elif databaseID.find('ORPHA') != -1:
+            # IDs are prefixed 'ORPHA' in file 'ORDO' in database
+            ordoID = databaseID.replace('ORPHA', 'ORDO')
+            isORDO = 1
+        else: # DECIPHER:
+            continue
 
-	# get HPO ID and verify
-	hpoID = tokens[3]
+        # get HPO ID and verify
+        hpoID = tokens[3]
         if hpoID not in hpoList:
             invalidHPOList.append(line)
             hasError = 1
 
-	# get evidence code and verify
-	evidenceCode = tokens[5]
-	if evidenceCode not in evidenceList:
-	    evidenceCode = 'TAS' # per TR13054, but still report
+        # get evidence code and verify
+        evidenceCode = tokens[5]
+        if evidenceCode not in evidenceList:
+            evidenceCode = 'TAS' # per TR13054, but still report
             evidErrorList.append(line)
             hasError = 1
 
-	# get date
-	biocuration = tokens[11]
-	tokens = string.split(biocuration, '[')
-	date = string.split(tokens[1], ']')[0]
+        # get date
+        biocuration = tokens[11]
+        tokens = str.split(biocuration, '[')
+        date = str.split(tokens[1], ']')[0]
 
-	#
-	# OMIM verification checks
-	#
-	if isOMIM:
+        #
+        # OMIM verification checks
+        #
+        if isOMIM:
 
-	    # check to see if in database
-	    if omimID not in omimDict.keys():
-	       invalidOMIMList.append(line)
-	       hasError = 1
-	    else:
-	        # check to see if obsolete
-	        if omimDict[omimID] == 1:
-		    obsoleteOMIMList.append(line)
-		    hasError = 1
+            # check to see if in database
+            if omimID not in list(omimDict.keys()):
+               invalidOMIMList.append(line)
+               hasError = 1
+            else:
+                # check to see if obsolete
+                if omimDict[omimID] == 1:
+                    obsoleteOMIMList.append(line)
+                    hasError = 1
 
-	    # check to see if OMIM id maps to DO (TR12540)
-	    if omimID not in omimToDOLookup:
-	       invalidDOList.append(line)
-	       hasError = 1
-	    else:
-	       doID = omimToDOLookup[omimID][0]
+            # check to see if OMIM id maps to DO (TR12540)
+            if omimID not in omimToDOLookup:
+               invalidDOList.append(line)
+               hasError = 1
+            else:
+               doID = omimToDOLookup[omimID][0]
 
-	#
-	# ORPHA/ORDO verification checks
-	#
-	elif isORDO:
-	    # check to see if ORDO id maps to DO (TR12540)
-	    if ordoID not in ordoToDOLookup:
-	       invalidDOList.append(line)
-	       hasError = 1
-	    else:
-	       doID = ordoToDOLookup[ordoID][0]
+        #
+        # ORPHA/ORDO verification checks
+        #
+        elif isORDO:
+            # check to see if ORDO id maps to DO (TR12540)
+            if ordoID not in ordoToDOLookup:
+               invalidDOList.append(line)
+               hasError = 1
+            else:
+               doID = ordoToDOLookup[ordoID][0]
 
-	if hasError:
-	    continue
+        if hasError:
+            continue
 
-	#
-	# set databaseID = 'Disease Ontology'
-	# see select * from ACC_LogicalDB where _LogicalDB_key = 191
-	#
-	databaseID = 'Disease Ontology'
-	aLine = annotLine % (hpoID, doID, jnumID, evidenceCode, inferredFrom, qualifier, editor, date, notes, databaseID)
-	annotToWriteDict[aLine] = ''
-	    
+        #
+        # set databaseID = 'Disease Ontology'
+        # see select * from ACC_LogicalDB where _LogicalDB_key = 191
+        #
+        databaseID = 'Disease Ontology'
+        aLine = annotLine % (hpoID, doID, jnumID, evidenceCode, inferredFrom, qualifier, editor, date, notes, databaseID)
+        annotToWriteDict[aLine] = ''
+            
     #
-    for line in annotToWriteDict.keys():
+    for line in list(annotToWriteDict.keys()):
         #get the list of properties
         #pList = annotToWriteDict[line]
-        #line = line  + string.join(pList, '&===&') + '\n'
+        #line = line  + str.join('&===&', pList) + '\n'
         fpAnnotFile.write(line)
 
     fpQcFile.write('Lines with invalid Evidence Codes\n These are loaded with "TAS"\n')
     fpQcFile.write('--------------------------------------------------\n')
-    fpQcFile.write(string.join(evidErrorList))
+    fpQcFile.write(str.join('\n', evidErrorList))
     fpQcFile.write('\nTotal: %s\n' % len(evidErrorList))
 
     fpQcFile.write('\nLines with invalid Qualifiers\n')
     fpQcFile.write('--------------------------------------------------\n')
-    fpQcFile.write(string.join(qualErrorList))
+    fpQcFile.write(str.join('\n', qualErrorList))
     fpQcFile.write('\nTotal: %s\n' % len(qualErrorList))
 
     fpQcFile.write('\nLines with invalid OMIM IDs \n')
     fpQcFile.write('--------------------------------------------------\n')
-    fpQcFile.write(string.join(invalidOMIMList))
+    fpQcFile.write(str.join('\n', invalidOMIMList))
     fpQcFile.write('\nTotal: %s\n' % len(invalidOMIMList))
 
     fpQcFile.write('\nLines with OMIM/ORDO IDs that do not map to DO\n')
     fpQcFile.write('--------------------------------------------------\n')
-    fpQcFile.write(string.join(invalidDOList))
+    fpQcFile.write(str.join('\n', invalidDOList))
     fpQcFile.write('\nTotal: %s\n' % len(invalidDOList))
 
     fpQcFile.write('\nLines with obsolete OMIM IDs\n')
     fpQcFile.write('--------------------------------------------------\n')
-    fpQcFile.write(string.join(obsoleteOMIMList))
+    fpQcFile.write(str.join('\n', obsoleteOMIMList))
     fpQcFile.write('\nTotal: %s\n' % len(obsoleteOMIMList))
 
     fpQcFile.write('\nLines with invalid HPO IDs\n')
     fpQcFile.write('--------------------------------------------------\n')
-    fpQcFile.write(string.join(invalidHPOList))
+    fpQcFile.write(str.join('\n', invalidHPOList))
     fpQcFile.write('\nTotal: %s\n' % len(invalidHPOList))
 
 #
@@ -418,4 +415,3 @@ def closeFiles():
 initialize()
 process()
 closeFiles()
-
