@@ -1,4 +1,11 @@
-${MIRROR_WGET}/download_package compbio.charite.de.phenotype_annotation
+${MIRROR_WGET}/download_package purl.obolibrary.org.phenotype.hpoa
+
+TAG: omim_hpoload-6-0-16-2
+DATE: 02/23/2021
+STAFF: dbm
+CHANGES: TR13468
+1) omim_hpoload.config.default: update INFILE_NAME to point to new input file
+2) index.html: update path to new input file
 
 TAG: omim_hpoload-6-0-16-1
 DATE: 08/21/2020
