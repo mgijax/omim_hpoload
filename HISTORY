@@ -1,5 +1,10 @@
 ${MIRROR_WGET}/download_package purl.obolibrary.org.phenotype.hpoa
 
+TAG: omim_hpoload-6-0-24-1
+DATE: 07/02/2024
+STAFF: lec
+wts2-1403/fl2-732/Change of OMIM prefix to MIM in MGI: back end
+
 TAG: omim_hpoload-6-0-16-2
 DATE: 02/23/2021
 STAFF: dbm

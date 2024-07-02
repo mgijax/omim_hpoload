@@ -16,8 +16,8 @@
 # 		field 8: Frequency (not used)
 #		field 9: Sex (not used)
 #		field 10: Modifier (not used)
-#               field 11: Aspect (not used)
-#               field 12: Biocuration (contains date)
+#       field 11: Aspect (not used)
+#       field 12: Biocuration (contains date)
 #
 # 	The annotation loader format has the following columns:
 #
@@ -54,6 +54,7 @@
 import sys
 import os
 import db
+import mgi_utils
 
 # input file and descriptor
 inFileName = os.environ['INFILE_NAME']
@@ -287,7 +288,7 @@ def process():
         # determine if databaseID is OMIM, ORPHA/ORDO
 
         if databaseID.find('OMIM') != -1:
-            omimID = databaseID
+            omimID = databaseID.replace('OMIM', 'MIM')
             isOMIM = 1
         elif databaseID.find('ORPHA') != -1:
             # IDs are prefixed 'ORPHA' in file 'ORDO' in database
@@ -311,8 +312,11 @@ def process():
 
         # get date
         biocuration = tokens[11]
-        tokens = str.split(biocuration, '[')
-        date = str.split(tokens[1], ']')[0]
+        try:
+            tokens = str.split(biocuration, '[')
+            date = str.split(tokens[1], ']')[0]
+        except:
+            date = mgi_utils.date("%m/%d/%Y")
 
         #
         # OMIM verification checks
